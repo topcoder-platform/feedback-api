@@ -1,0 +1,847 @@
+openapi: 3.0.0
+
+info:
+  version: '1.0'
+  title: Topcoder Feedback API
+  description: 'Feedback API is responsible for gathering feedback related to any member / challenge / work in Topcoder'
+  contact:
+    name: Topcoder support
+    email: support@topcoder.com
+
+tags:
+  - name: User Access
+  - name: Admin Access
+
+paths:
+  /feedbackForms:
+    get:
+      summary: Get list of feedback forms
+      security:
+        - bearer: []
+      description: Get list of feedback forms
+      tags:
+        - Admin Access
+      operationId: listFeedbackForms
+      parameters:
+        - in: query
+          name: name
+          description: Name of the feedback form. This will be a regex search.
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/FeedbackFormTemplateArrayResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      summary: Create a feedback form
+      security:
+        - bearer: []
+      description: Create feedback form with given details
+      tags:
+        - Admin Access
+      operationId: createFeedbackForm
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackFormTemplate'
+      responses:
+        '200':
+          $ref: '#/components/responses/FeedbackFormTemplateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /feedbackForms/{feedbackFormId}:
+    get:
+      summary: Get the feedback form
+      security:
+        - bearer: []
+      description: Get detailed feedback form
+      tags:
+        - Admin Access
+      operationId: getFeedbackForm
+      parameters:
+        - $ref: '#/components/parameters/feedbackFormId'
+      responses:
+        '200':
+          $ref: '#/components/responses/FeedbackFormTemplateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    put:
+      summary: Update feedback form
+      security:
+        - bearer: []
+      description: Update feedback form with given details
+      tags:
+        - Admin Access
+      operationId: updateFeedbackForm
+      parameters:
+        - $ref: '#/components/parameters/feedbackFormId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackFormTemplate'
+      responses:
+        '200':
+          $ref: '#/components/responses/FeedbackFormTemplateResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      summary: Delete feedback form
+      security:
+        - bearer: []
+      description: Delete feedback form
+      tags:
+        - Admin Access
+      operationId: deleteFeedbackForm
+      parameters:
+        - $ref: '#/components/parameters/feedbackFormId'
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /feedbacks:
+    get:
+      summary: Get list of feedbacks accessible for the given user
+      security:
+        - bearer: []
+      tags:
+        - User Access
+        - Admin Access
+      description: Get list of feedbacks accessible for the given user. Only Admins will have access to all feedbacks in the system. Other users will have access to feedbacks only in which they are either a feedback receiver or giver or observer (E.g. Copilot / Project Manager may need to look at some feedbacks related to their projects)
+      parameters:
+        - in: query
+          name: feedbackEntity
+          description: This field is used to determine the entity for which feedback is given. E.g. Feedback for Challenge / Member / Task, etc..
+          schema:
+            type: string
+        - in: query
+          name: feedbackEntityId
+          description: ID / Handle of the feedback receiver entity. E.g. If the feedback is for the member, handle should be passed. If the feedback is for Challenge or Task, Challenge ID / Task ID should be passed.
+          schema:
+            type: string
+        - in: query
+          name: status
+          description: Status of the feedback URL E.g. Active, Expired
+          schema:
+            type: string
+            enum:
+              - active
+              - expired
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/perPage'
+        - $ref: '#/components/parameters/sortBy'
+        - $ref: '#/components/parameters/sortOrder'
+      operationId: searchFeedbacks
+      responses:
+        '200':
+          $ref: '#/components/responses/FeedbackArrayResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    post:
+      summary: Create a feedback URL for an entity (Member / Challenge / Task)
+      security:
+        - bearer: []
+      tags:
+        - Admin Access
+      description: Create feedback URL for an entity which can be used by intended feedback givers to submit feedback
+      operationId: createFeedback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackDetail'
+      responses:
+        '200':
+          $ref: '#/components/responses/FeedbackDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /feedbacks/{feedbackId}/form:
+    get:
+      summary: Get feedback form
+      security:
+        - bearer: []
+      tags:
+        - User Access
+      description: Feedback form will be accessible only by the members who are in the list of feedback givers. If the feedback form is submitted before the expiry date, the member can view the response afterwards else member will get error saying that Feedback URL is expired
+      parameters:
+        - $ref: '#/components/parameters/feedbackId'
+      operationId: getFeedback
+      responses:
+        '200':
+          $ref: '#/components/responses/FeedbackGiverResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+    post:
+      summary: Submit feedback
+      security:
+        - bearer: []
+      tags:
+        - User Access
+      description: Feedback can be submitted only by the members who are in the list of feedback givers. Feedback can be submitted only once before the expiry date.
+      parameters:
+        - $ref: '#/components/parameters/feedbackId'
+      operationId: submitFeedback
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                responses:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/FeedbackResponseDetail'
+      responses:
+        '200':
+          $ref: '#/components/responses/FeedbackGiverResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /feedbacks/{feedbackId}:
+    get:
+      summary: Get feedback detail
+      security:
+        - bearer: []
+      tags:
+        - Admin Access
+      description: Members associated with feedback involves giver, receiver, observers (Copilots, PM if required). This end point will return the list of members associated with this feedback
+      parameters:
+        - $ref: '#/components/parameters/feedbackId'
+      operationId: getFeedbackDetail
+      responses:
+        '200':
+          $ref: '#/components/responses/FeedbackDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+      
+    put:
+      summary: Update feedback detail
+      security:
+        - bearer: []
+      tags:
+        - Admin Access
+      description: Members associated with feedback involves giver, receiver, observers (Copilots, PM if required). This end point will return the list of members associated with this feedback
+      parameters:
+        - $ref: '#/components/parameters/feedbackId'
+      operationId: updateFeedbackDetail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackDetail'
+      responses:
+        '200':
+          $ref: '#/components/responses/FeedbackDetailResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      summary: Delete feedback URL
+      security:
+        - bearer: []
+      tags:
+        - Admin Access
+      description: Only Admins can delete the feedback URL created
+      parameters:
+        - $ref: '#/components/parameters/feedbackId'
+      operationId: deleteFeedbackURL
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /feedbacks/{feedbackId}/responses:
+    get:
+      summary: Get list of feedback responses
+      security:
+        - bearer: []
+      tags:
+        - User Access
+        - Admin Access
+      description: This end point is accessible only for Admin / Feedback Receiver / Observer
+      parameters:
+        - $ref: '#/components/parameters/feedbackId'
+      operationId: getFeedbackResponses
+      responses:
+        '200':
+          description: 'List of feedback responses'
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  type: object
+                  properties:
+                    responseId:
+                      type: string
+                      format: uuid
+                    feedbackGiver:
+                      type: string
+                    feedbackDate:
+                      type: string
+                      format: date-time
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+  /feedbacks/{feedbackId}/responses/{responseId}:
+    get:
+      summary: Get detailed feedback response
+      security:
+        - bearer: []
+      tags:
+        - User Access
+        - Admin Access
+      description: This end point is accessible only for Admin / Feedback Receiver / Observer
+      parameters:
+        - $ref: '#/components/parameters/feedbackId'
+        - $ref: '#/components/parameters/responseId'
+      operationId: getFeedbackResponse
+      responses:
+        '200':
+          description: 'Specific feedback response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  feedbackGiver:
+                    type: string
+                  feedbackDate:
+                    type: string
+                    format: date-time
+                  responses:
+                    type: array
+                    items: 
+                      $ref: '#/components/schemas/FeedbackResponseDetail'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    
+    delete:
+      summary: Delete feedback response
+      security:
+        - bearer: []
+      tags:
+        - Admin Access
+      description: This end point is accessible only for Admin
+      parameters:
+        - $ref: '#/components/parameters/feedbackId'
+        - $ref: '#/components/parameters/responseId'
+      operationId: deleteFeedbackResponse
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  
+components:
+
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  
+  parameters:
+  
+    feedbackFormId:
+      name: feedbackFormId
+      in: path
+      description: Feedback Form ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+  
+    feedbackId:
+      name: feedbackId
+      in: path
+      description: Feedback ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+    
+    responseId:
+      name: responseId
+      in: path
+      description: Feedback Response ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+    
+    page:
+      name: page
+      in: query
+      description: The page number. Begins from 1
+      required: false
+      schema:
+        type: integer
+        default: 1
+
+    perPage:
+      name: perPage
+      in: query
+      description: The number of entities to be fetched in one page.
+      required: false
+      schema:
+        type: integer
+        default: 10
+        maximum: 100
+
+    sortBy:
+      name: sortBy
+      in: query
+      description: The field used to sort the results. Data is sorted by updatedAt timestamp by default
+      required: false
+      schema:
+        type: string
+
+    sortOrder:
+      name: sortOrder
+      in: query
+      description: The sorting order (asc/desc).
+      required: false
+      schema:
+        type: string
+        enum:
+          - asc
+          - desc
+        default: desc
+    
+  headers:
+    X-Page:
+      schema:
+        type: integer
+      description: Index of the current page (starting at 1)
+    X-Per-Page:
+      schema:
+        type: integer
+      description: Number of items per page
+    X-Prev-Page:
+      schema:
+        type: integer
+      description: Index of the previous page
+    X-Next-Page:
+      schema:
+        type: integer
+      description: Index of the next page
+    X-Total:
+      schema:
+        type: integer
+      description: Total number of items
+    X-Total-Pages:
+      schema:
+        type: integer
+      description: Total number of pages
+    Link:
+      schema:
+        type: string
+      description: Pagination link header
+  
+  schemas:
+    Error:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+    
+    AuditData:
+      description: Audit data for an object
+      type: object
+      properties:
+        createdBy:
+          type: string
+          readOnly: true
+          example: 'TonyJ'
+          description: Handle of the member / service which created this entity
+        createdAt:
+          type: string
+          readOnly: true
+          format: date-time
+          description: Date and time at which the entity is created
+        updatedBy:
+          type: string
+          readOnly: true
+          example: 'TonyJ'
+          description: Handle of the member / service which updated this entity
+        updatedAt:
+          type: string
+          readOnly: true
+          format: date-time
+          description: Date and time at which the entity is last updated
+          
+    FeedbackList:
+      type: object
+      required:
+        - id
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              readOnly: true
+            feedbackEntity:
+              type: string
+              enum:
+                - member
+                - challenge
+                - task
+            feedbackReceiverId:
+              type: string
+            status:
+              type: string
+              enum:
+                - active
+                - expired
+            expiryDate:
+              type: string
+              format: date-time
+        - $ref: '#/components/schemas/AuditData'
+    
+    FeedbackEntry:
+      type: object
+      properties:
+        type:
+          type: string
+        question:
+          type: string
+        parameters:
+          type: string
+          
+    FeedbackFormTemplate:
+      type: object
+      allOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              readOnly: true
+            name:
+              type: string
+            description:
+              type: string
+            formElements:
+              type: array
+              items:
+                $ref: '#/components/schemas/FeedbackEntry'
+        - $ref: '#/components/schemas/AuditData'
+    
+    FeedbackResponseDetail:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/FeedbackEntry'
+        - type: object
+          properties:
+            answer:
+              type: string
+    
+    FeedbackListArray:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/FeedbackList'
+        - type: object
+          properties:
+            linkWithFeedback:
+              type: string
+              enum:
+                - giver
+                - receiver
+                - observer
+                - administrator
+              
+    FeedbackDetail:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/FeedbackList'
+        - type: object
+          properties:
+            information:
+              type: string
+            isAnonymousForReceiver:
+              type: boolean
+            isAnonymousForObserver:
+              type: boolean
+            members:
+              type: object
+              properties:
+                feedbackGivers:
+                  type: array
+                  items:
+                    type: string
+                observers:
+                  type: array
+                  items:
+                    type: string
+            feedbackForm:
+              type: array
+              items:
+                $ref: '#/components/schemas/FeedbackEntry'
+          
+  responses:
+    NoContent:
+      description: |
+        The operation completed successfully but no content is needed
+        in the response.
+    
+    FeedbackFormTemplateArrayResponse:
+      description: |
+        Array of Feedback forms
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                name:
+                  type: string
+                description:
+                  type: string
+    
+    FeedbackFormTemplateResponse:
+      description: |
+        Detailed feedback form
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FeedbackFormTemplate'
+    
+    FeedbackArrayResponse:
+      description: |
+        Response that provides an Array of APIs.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/FeedbackListArray'
+      headers:
+        X-Page:
+          $ref: '#/components/headers/X-Page'
+        X-Per-Page:
+          $ref: '#/components/headers/X-Per-Page'
+        X-Next-Page:
+          $ref: '#/components/headers/X-Next-Page'
+        X-Prev-Page:
+          $ref: '#/components/headers/X-Prev-Page'
+        X-Total:
+          $ref: '#/components/headers/X-Total'
+        X-Total-Pages:
+          $ref: '#/components/headers/X-Total-Pages'
+        Link:
+          $ref: '#/components/headers/Link'
+    
+    FeedbackDetailResponse:
+      description: |
+        Response with detailed feedback
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FeedbackDetail'
+    
+    FeedbackGiverResponse:
+      description:
+        Feedback giver form (with responses if submitted)
+      content:
+        application/json:
+          schema:
+            allOf:
+              - type: object
+                properties:
+                  feedbackEntity:
+                    type: string
+                    enum:
+                      - member
+                      - challenge
+                      - task
+                  feedbackReceiverId:
+                    type: string
+                  expiryDate:
+                    type: string
+                    format: date-time
+                  isSubmitted:
+                    type: boolean
+                  information:
+                    type: string
+                  responses:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FeedbackResponseDetail'
+
+    BadRequest:
+      description: Bad request - Problem with the request (E.g. Missing parameters)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized - Token is missing or Invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Forbidden - User is not allowed to perform this operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Not found - Requested entity is not found in database
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Conflict:
+      description: Conflict - Request creates conflict in database. E.g. Duplicates
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    InternalServerError:
+      description: Internal Server Error - Request is valid but operation failed at server side
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
